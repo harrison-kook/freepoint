@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 520" font-family="Segoe UI, Arial, sans-serif">
+  <rect x="0" y="0" width="1220" height="520" fill="#ffffff"/>
+
+  <text x="20" y="25" font-size="20" font-weight="bold" fill="#111827">무료 포인트 시스템 - ERD (JPA 엔티티 기준)</text>
+  <text x="20" y="42" font-size="12" fill="#6b7280" font-style="italic">실선 = 실제 FK 관계(@OneToMany/@ManyToOne) · 점선 = 애그리게잇 간 논리적 참조(문자열 값 매칭, DB FK 아님)</text>
+
+  <!-- ================= point_account ================= -->
+  <rect x="40" y="50" width="320" height="34" fill="#2563eb"/>
+  <rect x="40" y="84" width="320" height="44" fill="#eff6ff" stroke="#2563eb" stroke-width="1"/>
+  <rect x="40" y="50" width="320" height="78" fill="none" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="200" y="72" font-size="14" font-weight="bold" fill="#ffffff" text-anchor="middle">point_account</text>
+  <text x="52" y="99" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827"><tspan font-weight="bold" fill="#b45309">[PK]</tspan> id              BIGINT</text>
+  <text x="52" y="121" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827"><tspan font-weight="bold" fill="#0f766e">[UK]</tspan> user_id         VARCHAR(255) NOT NULL</text>
+
+  <!-- ================= point_earn ================= -->
+  <rect x="40" y="190" width="320" height="34" fill="#2563eb"/>
+  <rect x="40" y="224" width="320" height="198" fill="#eff6ff" stroke="#2563eb" stroke-width="1"/>
+  <rect x="40" y="190" width="320" height="232" fill="none" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="200" y="212" font-size="14" font-weight="bold" fill="#ffffff" text-anchor="middle">point_earn</text>
+  <text x="52" y="239" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827"><tspan font-weight="bold" fill="#b45309">[PK]</tspan> id                    BIGINT</text>
+  <text x="52" y="261" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827"><tspan font-weight="bold" fill="#0f766e">[UK]</tspan> point_key             VARCHAR(36) NOT NULL</text>
+  <text x="52" y="283" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827">     amount                BIGINT NOT NULL</text>
+  <text x="52" y="305" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827">     remaining_amount      BIGINT NOT NULL</text>
+  <text x="52" y="327" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827">     earn_type             VARCHAR(20) NOT NULL</text>
+  <text x="52" y="349" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827">     status                VARCHAR(20) NOT NULL</text>
+  <text x="52" y="371" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827">     earned_at             TIMESTAMP NOT NULL</text>
+  <text x="52" y="393" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827">     expires_at            TIMESTAMP NOT NULL</text>
+  <text x="52" y="415" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827"><tspan font-weight="bold" fill="#7c3aed">[FK]</tspan> account_id            BIGINT NOT NULL</text>
+  <text x="365" y="255" font-size="10.5" fill="#6b7280">earn_type: NORMAL / MANUAL_ADMIN / RESTORED_EXPIRED</text>
+  <text x="365" y="268" font-size="10.5" fill="#6b7280">status: ACTIVE / CANCELED / EXHAUSTED</text>
+
+  <!-- ================= point_policy ================= -->
+  <rect x="440" y="50" width="320" height="34" fill="#d97706"/>
+  <rect x="440" y="84" width="320" height="132" fill="#fffbeb" stroke="#d97706" stroke-width="1"/>
+  <rect x="440" y="50" width="320" height="166" fill="none" stroke="#d97706" stroke-width="1.5"/>
+  <text x="600" y="72" font-size="14" font-weight="bold" fill="#ffffff" text-anchor="middle">point_policy</text>
+  <text x="452" y="99" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827"><tspan font-weight="bold" fill="#b45309">[PK]</tspan> id                    BIGINT</text>
+  <text x="452" y="121" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827">     max_earn_amount       BIGINT NOT NULL</text>
+  <text x="452" y="143" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827">     max_balance_amount    BIGINT NOT NULL</text>
+  <text x="452" y="165" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827">     min_expire_days       INT NOT NULL</text>
+  <text x="452" y="187" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827">     max_expire_days       INT NOT NULL</text>
+  <text x="452" y="209" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827">     default_expire_days   INT NOT NULL</text>
+  <text x="440" y="234" font-size="11" fill="#92400e" font-style="italic">※ FK 없음 — 적립/사용 검증 시 애플리케이션 코드(PointPolicy)에서 참조</text>
+
+  <!-- ================= point_use ================= -->
+  <rect x="840" y="50" width="320" height="34" fill="#16a34a"/>
+  <rect x="840" y="84" width="320" height="154" fill="#f0fdf4" stroke="#16a34a" stroke-width="1"/>
+  <rect x="840" y="50" width="320" height="188" fill="none" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="1000" y="72" font-size="14" font-weight="bold" fill="#ffffff" text-anchor="middle">point_use</text>
+  <text x="852" y="99" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827"><tspan font-weight="bold" fill="#b45309">[PK]</tspan> id                    BIGINT</text>
+  <text x="852" y="121" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827"><tspan font-weight="bold" fill="#0f766e">[UK]</tspan> point_key             VARCHAR(36) NOT NULL</text>
+  <text x="852" y="143" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827">     order_no              VARCHAR(255) NOT NULL</text>
+  <text x="852" y="165" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827">     amount                BIGINT NOT NULL</text>
+  <text x="852" y="187" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827">     canceled_amount       BIGINT NOT NULL</text>
+  <text x="852" y="209" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827">     status                VARCHAR(20) NOT NULL</text>
+  <text x="852" y="231" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827">     used_at               TIMESTAMP NOT NULL</text>
+  <text x="845" y="251" font-size="9" fill="#6b7280">status: USED /</text>
+  <text x="845" y="264" font-size="9" fill="#6b7280">PARTIALLY_CANCELED /</text>
+  <text x="845" y="277" font-size="9" fill="#6b7280">FULLY_CANCELED</text>
+
+  <!-- ================= point_use_allocation ================= -->
+  <rect x="840" y="300" width="320" height="34" fill="#16a34a"/>
+  <rect x="840" y="334" width="320" height="132" fill="#f0fdf4" stroke="#16a34a" stroke-width="1"/>
+  <rect x="840" y="300" width="320" height="166" fill="none" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="1000" y="322" font-size="14" font-weight="bold" fill="#ffffff" text-anchor="middle">point_use_allocation</text>
+  <text x="852" y="349" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827"><tspan font-weight="bold" fill="#b45309">[PK]</tspan> id                    BIGINT</text>
+  <text x="852" y="371" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827"><tspan font-weight="bold" fill="#7c3aed">[FK]</tspan> use_id                BIGINT NOT NULL</text>
+  <text x="852" y="393" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827">     earn_point_key        VARCHAR(36) NOT NULL</text>
+  <text x="852" y="415" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827">     allocated_amount      BIGINT NOT NULL</text>
+  <text x="852" y="437" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827">     canceled_amount       BIGINT NOT NULL</text>
+  <text x="852" y="459" font-size="12.5" font-family="Consolas, 'Courier New', monospace" fill="#111827">     seq                   INT NOT NULL</text>
+
+  <!-- ================= connectors ================= -->
+  <!-- account 1 to N earn -->
+  <line x1="200" y1="128" x2="200" y2="190" stroke="#1d4ed8" stroke-width="1.5"/>
+  <text x="208" y="142" font-size="12" fill="#1d4ed8" font-weight="bold">1</text>
+  <text x="208" y="182" font-size="12" fill="#1d4ed8" font-weight="bold">N</text>
+
+  <!-- use 1 to N allocation -->
+  <line x1="1000" y1="238" x2="1000" y2="300" stroke="#15803d" stroke-width="1.5"/>
+  <text x="1008" y="252" font-size="12" fill="#15803d" font-weight="bold">1</text>
+  <text x="1008" y="292" font-size="12" fill="#15803d" font-weight="bold">N</text>
+
+  <!-- allocation.earn_point_key -.-> earn.point_key (logical reference) -->
+  <line x1="840" y1="400" x2="360" y2="306" stroke="#9333ea" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <rect x="452" y="317" width="378" height="40" fill="#ffffff" fill-opacity="0.9"/>
+  <text x="462" y="332" font-size="11" fill="#7e22ce" font-weight="bold">earn_point_key -&gt; point_key</text>
+  <text x="462" y="350" font-size="10" fill="#7e22ce" font-style="italic">(논리적 참조 - FK 아님, PointAccount/PointUse는 별도 애그리게잇)</text>
+
+  <!-- legend -->
+  <rect x="40" y="470" width="14" height="14" fill="#2563eb"/>
+  <text x="60" y="481" font-size="11" fill="#374151">PointAccount 애그리게잇 (point_account, point_earn)</text>
+  <rect x="440" y="470" width="14" height="14" fill="#d97706"/>
+  <text x="460" y="481" font-size="11" fill="#374151">PointPolicy (독립, 관리자 API로 변경 가능한 정책값)</text>
+  <rect x="840" y="470" width="14" height="14" fill="#16a34a"/>
+  <text x="860" y="481" font-size="11" fill="#374151">PointUse 애그리게잇 (point_use, point_use_allocation)</text>
+</svg>
