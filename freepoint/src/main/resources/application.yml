@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: freepoint
+  h2:
+    console:
+      enabled: true
