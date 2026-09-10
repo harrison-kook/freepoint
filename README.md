@@ -58,20 +58,14 @@ H2 콘솔은 `http://localhost:8080/h2-console` 에서 확인할 수 있습니�
 - **핵심 도메인 로직**: 적립 lot의 소진 우선순위(관리자 지급 우선 → 만료 임박 순), 소진했던 순서 그대로 복원하는 부분 취소, 만료된 적립을 취소 복원할 때 신규 적립(`RESTORED_EXPIRED`)으로 처리하는 로직이 `PointAccount`/`PointEarn`/`PointUse` 안에 캡슐화되어 있습니다.
 - **동시성**: 적립·사용·적립취소·사용취소 등 계정을 변경하는 모든 경로가 계정 조회 시 비관적 락(`@Lock(PESSIMISTIC_WRITE)`)을 사용합니다. 사용↔적립취소가 같은 적립건을 동시에 건드리는 경쟁 상태를 실제로 재현(둘 다 성공해 데이터가 깨지는 것을 확인)한 뒤 락으로 고쳤습니다.
 
-과정 전체(요구사항 분석 → 테스트 시나리오/케이스 → 단계별 Red-Green-Refactor 기록)는 아래 문서에 남겼습니다.
-
-- [`docs/작업초안.md`](./docs/작업초안.md) — 요구사항 분석, ERD/API 초안, DDD 설계
-- [`docs/테스트-시나리오.md`](./docs/테스트-시나리오.md) — 기능별 시나리오 목록
-- [`docs/테스트-케이스.md`](./docs/테스트-케이스.md) — Given/When/Then 상세 케이스
-- [`docs/개발작업내역.md`](./docs/개발작업내역.md) — 단계별 TDD 진행 기록 (발견한 버그와 수정 과정 포함)
 
 ## ERD
 
 렌더링 도구(graphviz/mermaid-cli 등)가 설치되어 있지 않아 실제 JPA 엔티티를 기준으로 SVG를 직접 작성했습니다.
 
-![ERD](./src/main/resources/docs/erd.svg)
+![ERD](./src/main/resources/erd.svg)
 
-원본 파일: [`src/main/resources/docs/erd.svg`](./src/main/resources/docs/erd.svg)
+원본 파일: [`src/main/resources/erd.svg`](./src/main/resources/erd.svg)
 
 `point_use_allocation.earn_point_key → point_earn.point_key`는 DB FK가 아니라 값 매칭입니다. `PointAccount`와 `PointUse`를 별도 애그리게잇으로 설계했기 때문에 일부러 FK로 묶지 않았습니다.
 
@@ -79,9 +73,9 @@ H2 콘솔은 `http://localhost:8080/h2-console` 에서 확인할 수 있습니�
 
 실제 배포 환경을 가정했을 때의 구성 예시입니다. Route 53 → ALB → ECS Fargate(Spring Boot) → RDS(Multi-AZ) 형태이며, 과제 실행 환경의 H2는 운영 환경에서 RDS 등으로 교체가 필요합니다.
 
-![AWS Architecture](./src/main/resources/docs/aws-architecture.svg)
+![AWS Architecture](./src/main/resources/aws-architecture.svg)
 
-원본 파일: [`src/main/resources/docs/aws-architecture.svg`](./src/main/resources/docs/aws-architecture.svg)
+원본 파일: [`src/main/resources/aws-architecture.svg`](./src/main/resources/aws-architecture.svg)
 
 ## 설계 트레이드오프 및 가정
 
