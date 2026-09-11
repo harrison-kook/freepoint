@@ -56,7 +56,7 @@ H2 콘솔은 `http://localhost:8080/h2-console` 에서 확인할 수 있습니�
 
 ## 설계 개요
 
-- **개발 방식**: TDD(Red-Green-Refactor) + DDD. 구현 전에 테스트 시나리오/케이스를 먼저 작성했고, 8단계로 나누어 단계별로 진행했습니다.
+- **개발 방식**: TDD + DDD방식. 구현 전에 테스트 시나리오/케이스를 먼저 작성했고, 7단계로 나누어 단계별로 진행했습니다.
 - **애그리게잇**: `PointAccount`(계정 + 내부의 적립 lot인 `PointEarn`)와 `PointUse`(사용 + 배분 라인 `PointUseAllocationLine`)를 별도 애그리게잇으로 분리했습니다. 사용취소처럼 두 애그리게잇을 모두 건드리는 유스케이스는 애플리케이션 서비스(`CancelPointUseService`)가 한 트랜잭션에서 조율합니다.
 - **핵심 도메인 로직**: 적립 lot의 소진 우선순위(관리자 지급 우선 → 만료 임박 순), 소진했던 순서 그대로 복원하는 부분 취소, 만료된 적립을 취소 복원할 때 신규 적립(`RESTORED_EXPIRED`)으로 처리하는 로직이 `PointAccount`/`PointEarn`/`PointUse` 안에 캡슐화되어 있습니다.
 - **동시성**: 적립·사용·적립취소·사용취소 등 계정을 변경하는 모든 경로가 계정 조회 시 비관적 락(`@Lock(PESSIMISTIC_WRITE)`)을 사용합니다. 사용↔적립취소가 같은 적립건을 동시에 건드리는 경쟁 상태를 실제로 재현(둘 다 성공해 데이터가 깨지는 것을 확인)한 뒤 락으로 고쳤습니다.
@@ -95,7 +95,6 @@ H2 콘솔은 `http://localhost:8080/h2-console` 에서 확인할 수 있습니�
 - 관리자 API에 인증이 없습니다 (위 가정 4 참고).
 - 페이지네이션이 필요한 목록 조회 API(예: 계정별 적립 내역 전체 목록)는 구현하지 않았습니다. 현재는 특정 pointKey 단건 조회(`GET /api/points/earns/{pointKey}`)와 잔액 조회만 제공합니다.
 
-자체 리뷰로 발견했던 결함(요청 검증 부재로 500 유출, 정책 자기모순 값 허용, 적립취소·사용취소 경로의 락 미적용)은 모두 수정했습니다
 
 ## 테스트
 
@@ -110,59 +109,59 @@ H2 콘솔은 `http://localhost:8080/h2-console` 에서 확인할 수 있습니�
 
 | TC | 시나리오 | 계층 | Given | When | Then |
 |---|---|---|---|---|---|
-| TC-EARN-001 | S1 | Domain | 계정 잔액 0 | amount=1000, expireDays=30 로 적립 | pointKey 발급, remainingAmount=1000, expiresAt=적립일+30일, 계정 총 잔액 1000 |
-| TC-EARN-002 | S2 | Domain | 계정 잔액 0 | amount=1000, expireDays 미지정 | expiresAt = 적립일 + 정책.defaultExpireDays(365) |
-| TC-EARN-003 | S3 | Domain | - | amount=0 으로 적립 시도 | `InvalidPointAmountException` (또는 동등 예외) 발생, 적립 미생성 |
-| TC-EARN-004 | S3 | Domain | - | amount=-100 으로 적립 시도 | 예외 발생 |
-| TC-EARN-005 | S4 | Domain | 정책.maxEarnAmount=100000 | amount=100001 로 적립 시도 | 예외 발생 |
-| TC-EARN-006 | S5 | Domain | 정책.maxEarnAmount=100000 | amount=100000 으로 적립 | 성공 (경계값) |
-| TC-EARN-007 | S6 | Domain | 계정 현재 잔액 999,000, 정책.maxBalance=1,000,000 | amount=2000 적립 시도 (합계 1,001,000) | 예외 발생, 적립 미생성 |
-| TC-EARN-008 | S7 | Domain | 계정 현재 잔액 999,000, 정책.maxBalance=1,000,000 | amount=1000 적립 (합계 정확히 1,000,000) | 성공 (경계값) |
-| TC-EARN-009 | S8 | Domain | - | expireDays=0 으로 적립 시도 | 예외 발생 |
-| TC-EARN-010 | S8 | Domain | - | expireDays=1 로 적립 | 성공 |
-| TC-EARN-011 | S9 | Domain | - | expireDays=1825(5년) 로 적립 시도 | 예외 발생 (5년 미만이어야 함) |
-| TC-EARN-012 | S9 | Domain | - | expireDays=1824 로 적립 | 성공 |
-| TC-EARN-013 | S10 | Domain | - | 관리자 수기 지급으로 amount=1000 적립 | earnType=MANUAL_ADMIN 으로 저장됨, 일반 적립과 조회 시 구분됨 |
-| TC-EARN-014 | S11 | App | 정책.maxEarnAmount=100000 | 정책을 maxEarnAmount=50000 으로 변경 후 amount=60000 적립 시도 | 예외 발생 (변경된 정책이 즉시 반영됨) |
+| TC-EARN-001 | S1 정상적으로 금액/만료일을 지정해 적립한다 | Domain | 계정 잔액 0 | amount=1000, expireDays=30 로 적립 | pointKey 발급, remainingAmount=1000, expiresAt=적립일+30일, 계정 총 잔액 1000 |
+| TC-EARN-002 | S2 만료일을 지정하지 않으면 기본 365일이 적용된다 | Domain | 계정 잔액 0 | amount=1000, expireDays 미지정 | expiresAt = 적립일 + 정책.defaultExpireDays(365) |
+| TC-EARN-003 | S3 적립 금액이 1P 미만(0 또는 음수)이면 실패한다 | Domain | - | amount=0 으로 적립 시도 | `InvalidPointAmountException` (또는 동등 예외) 발생, 적립 미생성 |
+| TC-EARN-004 | S3 적립 금액이 1P 미만(0 또는 음수)이면 실패한다 | Domain | - | amount=-100 으로 적립 시도 | 예외 발생 |
+| TC-EARN-005 | S4 적립 금액이 정책의 1회 최대 적립한도를 초과하면 실패한다 | Domain | 정책.maxEarnAmount=100000 | amount=100001 로 적립 시도 | 예외 발생 |
+| TC-EARN-006 | S5 적립 금액이 정책의 1회 최대 적립한도와 정확히 같으면 성공한다 (경계값) | Domain | 정책.maxEarnAmount=100000 | amount=100000 으로 적립 | 성공 (경계값) |
+| TC-EARN-007 | S6 적립 후 총 보유액이 정책의 최대 보유한도를 초과하면 실패한다 | Domain | 계정 현재 잔액 999,000, 정책.maxBalance=1,000,000 | amount=2000 적립 시도 (합계 1,001,000) | 예외 발생, 적립 미생성 |
+| TC-EARN-008 | S7 적립 후 총 보유액이 정책의 최대 보유한도와 정확히 같으면 성공한다 (경계값) | Domain | 계정 현재 잔액 999,000, 정책.maxBalance=1,000,000 | amount=1000 적립 (합계 정확히 1,000,000) | 성공 (경계값) |
+| TC-EARN-009 | S8 만료일수가 1일 미만이면 실패, 정확히 1일이면 성공한다 | Domain | - | expireDays=0 으로 적립 시도 | 예외 발생 |
+| TC-EARN-010 | S8 만료일수가 1일 미만이면 실패, 정확히 1일이면 성공한다 | Domain | - | expireDays=1 로 적립 | 성공 |
+| TC-EARN-011 | S9 만료일수가 5년 이상이면 실패, 5년 미만 최댓값이면 성공한다 | Domain | - | expireDays=1825(5년) 로 적립 시도 | 예외 발생 (5년 미만이어야 함) |
+| TC-EARN-012 | S9 만료일수가 5년 이상이면 실패, 5년 미만 최댓값이면 성공한다 | Domain | - | expireDays=1824 로 적립 | 성공 |
+| TC-EARN-013 | S10 관리자 수기 지급 적립은 일반 적립과 구분되는 타입으로 저장/조회된다 | Domain | - | 관리자 수기 지급으로 amount=1000 적립 | earnType=MANUAL_ADMIN 으로 저장됨, 일반 적립과 조회 시 구분됨 |
+| TC-EARN-014 | S11 정책(1회한도/보유한도/만료일범위)을 변경하면 이후 적립 요청에 즉시 반영된다 (하드코딩 금지 검증) | App | 정책.maxEarnAmount=100000 | 정책을 maxEarnAmount=50000 으로 변경 후 amount=60000 적립 시도 | 예외 발생 (변경된 정책이 즉시 반영됨) |
 
 ## 2. 적립취소
 
 | TC | 시나리오 | 계층 | Given | When | Then |
 |---|---|---|---|---|---|
-| TC-EARNCANCEL-001 | S12 | Domain | pointKey=A 로 1000원 적립, 미사용 | A 적립취소 | A.remainingAmount=0, A.status=CANCELED, 계정 잔액 -1000 |
-| TC-EARNCANCEL-002 | S13 | Domain | A(1000원 적립) 중 300원 사용됨 (remaining=700) | A 적립취소 시도 | 예외 발생, A 상태 변화 없음 |
-| TC-EARNCANCEL-003 | S14 | Domain | A 적립 후 이미 취소됨 | A 재취소 시도 | 예외 발생 |
-| TC-EARNCANCEL-004 | S15 | App | - | 존재하지 않는 pointKey로 취소 API 호출 | 404 또는 NotFound 예외 |
+| TC-EARNCANCEL-001 | S12 전혀 사용되지 않은 적립은 전액 취소할 수 있다 | Domain | pointKey=A 로 1000원 적립, 미사용 | A 적립취소 | A.remainingAmount=0, A.status=CANCELED, 계정 잔액 -1000 |
+| TC-EARNCANCEL-002 | S13 일부라도 사용된 적립은 취소할 수 없다 | Domain | A(1000원 적립) 중 300원 사용됨 (remaining=700) | A 적립취소 시도 | 예외 발생, A 상태 변화 없음 |
+| TC-EARNCANCEL-003 | S14 이미 취소된 적립을 다시 취소하면 실패한다 | Domain | A 적립 후 이미 취소됨 | A 재취소 시도 | 예외 발생 |
+| TC-EARNCANCEL-004 | S15 존재하지 않는 pointKey로 취소를 시도하면 실패한다 | App | - | 존재하지 않는 pointKey로 취소 API 호출 | 404 또는 NotFound 예외 |
 
 ## 3. 사용
 
 | TC | 시나리오 | 계층 | Given | When | Then |
 |---|---|---|---|---|---|
-| TC-USE-001 | S16 | Domain/App | 계정 잔액 1000 | orderNo="A1234", amount=500 사용 | PointUse 생성, orderNo="A1234" 기록, pointKey 발급 |
-| TC-USE-002 | S17 | Domain | 계정 잔액 500 | amount=600 사용 시도 | 예외 발생(잔액부족), 상태 변화 없음 |
-| TC-USE-003 | S18 | Domain | A(1000, 만료 늦음), B(500, 만료 늦음) 순서로 적립 | orderNo="A1234", amount=1200 사용 | allocation: A 1000 전액 + B 200, A.remaining=0, B.remaining=300 |
-| TC-USE-004 | S19 | Domain | 일반적립 A(1000, 만료 짧음), 관리자지급 M(500, 만료 김) | amount=300 사용 | M에서 우선 소진 (M.remaining=200, A.remaining=1000 그대로) |
-| TC-USE-005 | S20 | Domain | 일반적립 A(만료 10일 뒤), B(만료 3일 뒤), 둘 다 500원 | amount=500 사용 | B가 먼저 전액 소진, A는 그대로 |
-| TC-USE-006 | S21 | Domain | A(500, 이미 만료), B(500, 미만료) | amount=300 사용 | B에서만 소진, A는 소진 대상에서 제외 |
-| TC-USE-007 | S22 | Domain | A(500) | amount=500 사용 (전액 소진) | A.remainingAmount=0, A.status=EXHAUSTED, 이후 사용 요청 시 A 후보에서 제외 |
+| TC-USE-001 | S16 주문번호와 함께 사용하면 사용 이력에 주문번호가 기록된다 | Domain/App | 계정 잔액 1000 | orderNo="A1234", amount=500 사용 | PointUse 생성, orderNo="A1234" 기록, pointKey 발급 |
+| TC-USE-002 | S17 보유 잔액보다 큰 금액을 사용하려 하면 실패한다 | Domain | 계정 잔액 500 | amount=600 사용 시도 | 예외 발생(잔액부족), 상태 변화 없음 |
+| TC-USE-003 | S18 여러 적립건에 걸쳐 소진될 경우, 적립건별 소진 금액이 1원 단위로 정확히 기록된다 | Domain | A(1000, 만료 늦음), B(500, 만료 늦음) 순서로 적립 | orderNo="A1234", amount=1200 사용 | allocation: A 1000 전액 + B 200, A.remaining=0, B.remaining=300 |
+| TC-USE-004 | S19 관리자 수기지급 적립이 있으면 일반 적립보다 먼저 소진된다 | Domain | 일반적립 A(1000, 만료 짧음), 관리자지급 M(500, 만료 김) | amount=300 사용 | M에서 우선 소진 (M.remaining=200, A.remaining=1000 그대로) |
+| TC-USE-005 | S20 동일 우선순위 그룹 내에서는 만료일이 짧게 남은 적립부터 소진된다 | Domain | 일반적립 A(만료 10일 뒤), B(만료 3일 뒤), 둘 다 500원 | amount=500 사용 | B가 먼저 전액 소진, A는 그대로 |
+| TC-USE-006 | S21 이미 만료된 적립은 사용 대상에서 제외된다 | Domain | A(500, 이미 만료), B(500, 미만료) | amount=300 사용 | B에서만 소진, A는 소진 대상에서 제외 |
+| TC-USE-007 | S22 소진되어 잔액이 0이 된 적립은 이후 소진 대상에서 제외된다 | Domain | A(500) | amount=500 사용 (전액 소진) | A.remainingAmount=0, A.status=EXHAUSTED, 이후 사용 요청 시 A 후보에서 제외 |
 
 ## 4. 사용취소
 
 | TC | 시나리오 | 계층 | Given | When | Then |
 |---|---|---|---|---|---|
-| TC-USECANCEL-001 | S23 | Domain | 사용 C: A에서 1000, B에서 200 소진 (총 1200) | C 전액(1200) 사용취소 | A.remaining +1000, B.remaining +200, C.canceledAmount=1200, C.status=FULLY_CANCELED |
-| TC-USECANCEL-002 | S24 | Domain | 사용 C: A에서 1000(seq1), B에서 200(seq2) 소진 | C를 1100원 부분취소 | seq1(A)부터 최대치 복원: A +1000, 남은 100원은 seq2(B)에서 복원: B +100 |
-| TC-USECANCEL-003 | S25 | Domain | 사용 C=1200, 이미 300원 취소됨(canceledAmount=300) | 추가로 1000원 취소 시도 (누적 1300 > 1200) | 예외 발생 |
-| TC-USECANCEL-004 | S26 | Domain | 사용 C가 B(미만료)에서 200 소진 | 200원 사용취소 | B.remainingAmount +200 (신규 적립 생성 없음) |
-| TC-USECANCEL-005 | S27 | Domain | 사용 C가 A(이미 만료됨)에서 1000 소진 | 1000원 사용취소 | A.remainingAmount은 변하지 않음(만료 상태 유지), 신규 PointEarn(E) 생성, E.amount=1000, E.remainingAmount=1000 |
-| TC-USECANCEL-006 | S28 | Domain | TC-USECANCEL-005 상황 | 신규 적립 E 생성 후 | E.earnType=RESTORED_EXPIRED, E.pointKey는 A와 다른 새 값, E는 사용취소 이벤트를 참조(추적 가능) |
-| TC-USECANCEL-007 | S29 | Domain | 사용 C=1200원, 1차 취소 500원 완료(canceledAmount=500) | 2차로 700원 취소 요청(누적 정확히 1200) | 성공, C.status=FULLY_CANCELED |
+| TC-USECANCEL-001 | S23 사용금액 전체를 취소하면 관련된 모든 적립건에 복원된다 | Domain | 사용 C: A에서 1000, B에서 200 소진 (총 1200) | C 전액(1200) 사용취소 | A.remaining +1000, B.remaining +200, C.canceledAmount=1200, C.status=FULLY_CANCELED |
+| TC-USECANCEL-002 | S24 사용금액 일부만 취소하면 소진했던 순서 그대로 앞에서부터 복원된다 | Domain | 사용 C: A에서 1000(seq1), B에서 200(seq2) 소진 | C를 1100원 부분취소 | seq1(A)부터 최대치 복원: A +1000, 남은 100원은 seq2(B)에서 복원: B +100 |
+| TC-USECANCEL-003 | S25 취소 요청 금액이 (원 사용금액 - 기취소금액)을 초과하면 실패한다 | Domain | 사용 C=1200, 이미 300원 취소됨(canceledAmount=300) | 추가로 1000원 취소 시도 (누적 1300 > 1200) | 예외 발생 |
+| TC-USECANCEL-004 | S26 복원 대상 적립건이 아직 만료되지 않았다면 해당 적립건의 잔액이 복원된다 | Domain | 사용 C가 B(미만료)에서 200 소진 | 200원 사용취소 | B.remainingAmount +200 (신규 적립 생성 없음) |
+| TC-USECANCEL-005 | S27 복원 대상 적립건이 이미 만료되었다면, 복원 대신 동일 금액의 신규 적립(새 pointKey)이 생성된다 | Domain | 사용 C가 A(이미 만료됨)에서 1000 소진 | 1000원 사용취소 | A.remainingAmount은 변하지 않음(만료 상태 유지), 신규 PointEarn(E) 생성, E.amount=1000, E.remainingAmount=1000 |
+| TC-USECANCEL-006 | S28 신규 적립으로 복원된 건은 원래 적립과 구분되는 별도 타입(RESTORED_EXPIRED)을 가진다 | Domain | TC-USECANCEL-005 상황 | 신규 적립 E 생성 후 | E.earnType=RESTORED_EXPIRED, E.pointKey는 A와 다른 새 값, E는 사용취소 이벤트를 참조(추적 가능) |
+| TC-USECANCEL-007 | S29 부분취소 후 남은 사용금액에 대해 추가로 부분취소할 수 있다 (누적 취소 검증) | Domain | 사용 C=1200원, 1차 취소 500원 완료(canceledAmount=500) | 2차로 700원 취소 요청(누적 정확히 1200) | 성공, C.status=FULLY_CANCELED |
 
 ## 5. 통합 시나리오 (명세 예시 재현)
 
 | TC | 시나리오 | 계층 | 단계 | 검증 |
 |---|---|---|---|---|
-| TC-SCENARIO-001 | S30 | API (SpringBootTest) | 1) 1000원 적립 → pointKey A | 계정 잔액 0→1000 |
+| TC-SCENARIO-001 | S30 1000원 적립(A) → 500원 적립(B) → 주문 A1234에서 1200원 사용(C: A전액+B일부 소진) → A 만료 → C의 1200원 중 1100원 부분취소(D: A분 1000원은 신규적립 E, B분 100원은 B에 복원) 전체 플로우를 순서대로 수행하며 매 단계 잔액/상태를 검증한다 | API (SpringBootTest) | 1) 1000원 적립 → pointKey A | 계정 잔액 0→1000 |
 | | | | 2) 500원 적립 → pointKey B | 계정 잔액 1000→1500 |
 | | | | 3) 주문 A1234, 1200원 사용 → pointKey C | 계정 잔액 1500→300, A소진 1000(잔액0), B소진 200(잔액300) |
 | | | | 4) A 만료 처리(테스트에서 시간 조작 또는 만료일 도달 시뮬레이션) | A.expiresAt이 현재보다 과거가 됨 |
@@ -178,12 +177,12 @@ H2 콘솔은 `http://localhost:8080/h2-console` 에서 확인할 수 있습니�
 
 | TC | 시나리오 | 계층 | Given | When | Then |
 |---|---|---|---|---|---|
-| TC-QUERY-001 | S31 | API | A 적립에서 1000원이 사용됨 | GET /api/points/earns/{A의 pointKey} | 응답에 사용 내역(주문번호, 소진금액) 포함 |
-| TC-QUERY-002 | S32 | API | 계정에 적립 A(1000), B(500 중 200 사용) 존재 | GET /api/points/accounts/{userId}/balance | 총 잔액 = 1000 + 300 = 1300 |
+| TC-QUERY-001 | S31 특정 적립건(pointKey) 조회 시 해당 적립이 사용된 주문/금액 내역이 함께 조회된다 (추적성) | API | A 적립에서 1000원이 사용됨 | GET /api/points/earns/{A의 pointKey} | 응답에 사용 내역(주문번호, 소진금액) 포함 |
+| TC-QUERY-002 | S3 계정의 현재 총 잔액을 조회한다2 | API | 계정에 적립 A(1000), B(500 중 200 사용) 존재 | GET /api/points/accounts/{userId}/balance | 총 잔액 = 1000 + 300 = 1300 |
 
 ## 7. 동시성 (선택)
 
 | TC | 시나리오 | 계층 | Given | When | Then |
 |---|---|---|---|---|---|
-| TC-CONCURRENCY-001 | S33 | API | 계정 잔액 1000 | 800원 사용 요청 2건을 동시에 전송 | 하나만 성공(200), 다른 하나는 잔액부족으로 실패(4xx), 최종 잔액=200 |
+| TC-CONCURRENCY-001 | S33 동일 계정에 대해 동시에 두 건의 사용 요청이 들어와 합계가 잔액을 초과하는 경우, 하나만 성공하고 다른 하나는 실패한다 | API | 계정 잔액 1000 | 800원 사용 요청 2건을 동시에 전송 | 하나만 성공(200), 다른 하나는 잔액부족으로 실패(4xx), 최종 잔액=200 |
 
