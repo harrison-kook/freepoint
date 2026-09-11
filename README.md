@@ -66,9 +66,9 @@ H2 콘솔은 `http://localhost:8080/h2-console` 에서 확인할 수 있습니�
 
 렌더링 도구(graphviz/mermaid-cli 등)가 설치되어 있지 않아 실제 JPA 엔티티를 기준으로 SVG를 직접 작성했습니다.
 
-![ERD](./src/main/resources/erd.svg)
+![ERD](freepoint/src/main/resources/erd.svg)
 
-원본 파일: [`src/main/resources/erd.svg`](./src/main/resources/erd.svg)
+원본 파일: [`src/main/resources/erd.svg`](freepoint/src/main/resources/erd.svg)
 
 `point_use_allocation.earn_point_key → point_earn.point_key`는 DB FK가 아니라 값 매칭입니다. `PointAccount`와 `PointUse`를 별도 애그리게잇으로 설계했기 때문에 일부러 FK로 묶지 않았습니다.
 
@@ -76,9 +76,9 @@ H2 콘솔은 `http://localhost:8080/h2-console` 에서 확인할 수 있습니�
 
 실제 배포 환경을 가정했을 때의 구성 예시입니다. Route 53 → ALB → ECS Fargate(Spring Boot) → RDS(Multi-AZ) 형태이며, 과제 실행 환경의 H2는 운영 환경에서 RDS 등으로 교체가 필요합니다.
 
-![AWS Architecture](./src/main/resources/aws-architecture.svg)
+![AWS Architecture](freepoint/src/main/resources/aws-architecture.svg)
 
-원본 파일: [`src/main/resources/aws-architecture.svg`](./src/main/resources/aws-architecture.svg)
+원본 파일: [`src/main/resources/aws-architecture.svg`](freepoint/src/main/resources/aws-architecture.svg)
 
 ## 설계 트레이드오프 및 가정
 
