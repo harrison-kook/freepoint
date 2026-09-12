@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class JpaPointUseRepository implements PointUseRepository {
+class JpaPointUseRepository implements PointUseRepository {
 
     private final SpringDataPointUseRepository springDataRepository;
 

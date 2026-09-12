@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public class JpaPointPolicyRepository implements PointPolicyRepository {
+class JpaPointPolicyRepository implements PointPolicyRepository {
 
     private final SpringDataPointPolicyRepository springDataRepository;
 
