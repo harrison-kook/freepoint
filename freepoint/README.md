@@ -105,6 +105,7 @@ H2 콘솔은 `http://localhost:8080/h2-console` 에서 확인할 수 있습니�
 > - **계층**: `Domain`(애그리게잇 단위테스트) / `App`(애플리케이션 서비스, repository는 fake/in-memory) / `API`(SpringBootTest + H2, 실제 엔드포인트)
 > - 정책 기본값(테스트 기준값): 1회 최대 적립 100,000P, 최대 보유한도 1,000,000P, 만료일 1일~1825일(5년) 미만, 기본 365일
 
+```
 Test
 kr.co.freepoint
  ├─ application
@@ -126,6 +127,7 @@ kr.co.freepoint
  └─ testsupport          
      ├─ MutableClock
      └─ PointPolicyFixtures
+```     
 
 ## 1. 적립
 
