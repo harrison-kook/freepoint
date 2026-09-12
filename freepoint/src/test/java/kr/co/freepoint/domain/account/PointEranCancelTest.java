@@ -10,7 +10,7 @@ import static kr.co.freepoint.testsupport.PointPolicyFixtures.defaultPolicy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class PointEranCancelTest {
+class PointEranCancelTest {
 
     private static final Instant NOW = Instant.parse("2026-01-01T00:00:00Z");
 
