@@ -66,9 +66,9 @@ H2 콘솔은 `http://localhost:8080/h2-console` 에서 확인할 수 있습니�
 
 렌더링 도구(graphviz/mermaid-cli 등)가 설치되어 있지 않아 실제 JPA 엔티티를 기준으로 SVG를 직접 작성했습니다.
 
-![ERD](freepoint/src/main/resources/erd.svg)
+![ERD](src/main/resources/erd.svg)
 
-원본 파일: [`src/main/resources/erd.svg`](freepoint/src/main/resources/erd.svg)
+원본 파일: [`src/main/resources/erd.svg`](src/main/resources/erd.svg)
 
 `point_use_allocation.earn_point_key → point_earn.point_key`는 DB FK가 아니라 값 매칭입니다. `PointAccount`와 `PointUse`를 별도 애그리게잇으로 설계했기 때문에 일부러 FK로 묶지 않았습니다.
 
@@ -76,9 +76,9 @@ H2 콘솔은 `http://localhost:8080/h2-console` 에서 확인할 수 있습니�
 
 실제 배포 환경을 가정했을 때의 구성 예시입니다. Route 53 → ALB → ECS Fargate(Spring Boot) → RDS(Multi-AZ) 형태이며, 과제 실행 환경의 H2는 운영 환경에서 RDS 등으로 교체가 필요합니다.
 
-![AWS Architecture](freepoint/src/main/resources/aws-architecture.svg)
+![AWS Architecture](src/main/resources/aws-architecture.svg)
 
-원본 파일: [`src/main/resources/aws-architecture.svg`](freepoint/src/main/resources/aws-architecture.svg)
+원본 파일: [`src/main/resources/aws-architecture.svg`](src/main/resources/aws-architecture.svg)
 
 ## 설계 트레이드오프 및 가정
 
@@ -96,14 +96,36 @@ H2 콘솔은 `http://localhost:8080/h2-console` 에서 확인할 수 있습니�
 - 페이지네이션이 필요한 목록 조회 API(예: 계정별 적립 내역 전체 목록)는 구현하지 않았습니다. 현재는 특정 pointKey 단건 조회(`GET /api/points/earns/{pointKey}`)와 잔액 조회만 제공합니다.
 
 
-## 테스트
+## TDD 적용 순서
 
-```bash
-./gradlew test
-```
+1. **도메인 계층 단위테스트** 먼저 작성 (S1~S29 중 계정/적립/사용취소 도메인 규칙) → `PointAccount`, `PointUse` 등 애그리게잇의 동작을 리치 도메인 모델로 구현
+2. **애플리케이션 서비스 테스트** (유스케이스 단위, 리포지토리는 실제 구현 또는 인메모리 fake 사용)
+3. **API/통합테스트** — S30(예시 시나리오 재현)을 최종 인수 테스트로 작성, 실제 H2 DB + 전체 스프링 컨텍스트로 검증
 
 > - **계층**: `Domain`(애그리게잇 단위테스트) / `App`(애플리케이션 서비스, repository는 fake/in-memory) / `API`(SpringBootTest + H2, 실제 엔드포인트)
 > - 정책 기본값(테스트 기준값): 1회 최대 적립 100,000P, 최대 보유한도 1,000,000P, 만료일 1일~1825일(5년) 미만, 기본 365일
+
+Test
+kr.co.freepoint
+ ├─ application
+ │   ├─ CancelEarnServiceTest   
+ │   ├─ EarnPointServiceTest            
+ │   ├─ FakePointAccountRepository      
+ │   └─ FakePointPolicyRepository 
+ ├─ domain    
+ │   ├─ account
+ │   │    ├─ PointEarnTest
+ │   │    └─ PointEranCancelTest
+ │   └─ use
+ │        ├─ PointUseCancelTest
+ │        └─ PointUseTest
+ ├─ scenario
+ │   ├─ ConcurrencyApiTest
+ │   ├─ QueryApiTest
+ │   └─ ScenarioTest
+ └─ testsupport          
+     ├─ MutableClock
+     └─ PointPolicyFixtures
 
 ## 1. 적립
 
