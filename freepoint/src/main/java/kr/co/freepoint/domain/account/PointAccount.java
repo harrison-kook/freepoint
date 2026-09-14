@@ -27,13 +27,13 @@ public class PointAccount {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // 포인트 계좌 ID (PK)
 
     @Column(nullable = false, unique = true, updatable = false)
-    private String userId;
+    private String userId; // 계좌 소유자 사용자 ID
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PointEarn> earns = new ArrayList<>();
+    private List<PointEarn> earns = new ArrayList<>(); // 이 계좌에 속한 적립 내역 목록
 
     protected PointAccount() {
     }

@@ -9,24 +9,26 @@ import org.springframework.http.HttpStatus;
 @Entity
 @Table(name = "point_policy")
 public class PointPolicy {
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // 정책 ID (PK)
 
     @Column(nullable = false)
-    private long maxEarnAmount;
+    private long maxEarnAmount; // 1회 최대 적립 가능 금액
 
     @Column(nullable = false)
-    private long maxBalanceAmount;
+    private long maxBalanceAmount; // 계좌가 보유할 수 있는 최대 잔액 한도
 
     @Column(nullable = false)
-    private int minExpireDays;
+    private int minExpireDays; // 허용되는 최소 만료일수
 
     @Column(nullable = false)
-    private int maxExpireDays;
+    private int maxExpireDays; // 허용되는 최대 만료일수
 
     @Column(nullable = false)
-    private int defaultExpireDays;
+    private int defaultExpireDays; // 만료일수 미지정 시 적용되는 기본값
 
     protected PointPolicy() {
     }

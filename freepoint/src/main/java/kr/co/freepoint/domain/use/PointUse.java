@@ -17,30 +17,30 @@ public class PointUse {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // 사용 내역 ID (PK)
 
     @Column(nullable = false, unique = true, updatable = false, length = 36)
-    private String pointKey;
+    private String pointKey; // 사용 건을 외부에 식별시키는 고유 키(UUID)
 
     @Column(nullable = false, updatable = false)
-    private String orderNo;
+    private String orderNo; // 포인트가 사용된 주문 번호
 
     @Column(nullable = false, updatable = false)
-    private long amount;
+    private long amount; // 사용(차감) 요청 금액
 
     @Column(nullable = false, updatable = false)
-    private Instant usedAt;
+    private Instant usedAt; // 사용 발생 시각
 
     @Column(nullable = false)
-    private long canceledAmount;
+    private long canceledAmount; // 지금까지 취소된 누적 금액
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private PointUseStatus status;
+    private PointUseStatus status; // 사용 상태(사용됨/부분취소/전체취소)
 
     @OneToMany(mappedBy = "use", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("seq ASC")
-    private List<PointUseAllocationLine> allocations = new ArrayList<>();
+    private List<PointUseAllocationLine> allocations = new ArrayList<>(); // 이 사용 건이 어느 적립분에서 얼마씩 차감됐는지 배분 내역
 
     protected PointUse() {
     }

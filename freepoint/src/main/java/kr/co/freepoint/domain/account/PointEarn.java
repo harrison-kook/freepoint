@@ -15,34 +15,34 @@ public class PointEarn {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // 적립 내역 ID (PK)
 
     @Column(nullable = false, unique = true, updatable = false, length = 36)
-    private String pointKey;
+    private String pointKey; // 적립 건을 외부에 식별시키는 고유 키(UUID)
 
     @Column(nullable = false, updatable = false)
-    private long amount;
+    private long amount; // 최초 적립 금액
 
     @Column(nullable = false)
-    private long remainingAmount;
+    private long remainingAmount; // 사용/취소 후 남은 잔여 금액
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, updatable = false, length = 20)
-    private EarnType earnType;
+    private EarnType earnType; // 적립 유형(수동 관리자 적립, 만료 복원 등)
 
     @Column(nullable = false, updatable = false)
-    private Instant earnedAt;
+    private Instant earnedAt; // 적립 발생 시각
 
     @Column(nullable = false, updatable = false)
-    private Instant expiresAt;
+    private Instant expiresAt; // 적립분 만료 시각
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private EarnStatus status;
+    private EarnStatus status; // 적립 상태(사용가능/소진/취소)
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = false, updatable = false)
-    private PointAccount account;
+    private PointAccount account; // 이 적립이 속한 포인트 계좌 (FK)
 
     protected PointEarn() {
     }
