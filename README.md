@@ -98,9 +98,9 @@ H2 콘솔은 `http://localhost:8080/h2-console` 에서 확인할 수 있습니�
 
 ## TDD 적용 순서
 
-1. **도메인 계층 단위테스트** 먼저 작성 (S1~S29 중 계정/적립/사용취소 도메인 규칙) → `PointAccount`, `PointUse` 등 애그리게잇의 동작을 리치 도메인 모델로 구현
+1. **도메인 계층 단위테스트** 먼저 작성 (TC-EARN-001~TC-USECANCEL-007 중 계정/적립/사용취소 도메인 규칙) → `PointAccount`, `PointUse` 등 애그리게잇의 동작을 리치 도메인 모델로 구현
 2. **애플리케이션 서비스 테스트** (유스케이스 단위, 리포지토리는 실제 구현 또는 인메모리 fake 사용)
-3. **API/통합테스트** — S30(예시 시나리오 재현)을 최종 인수 테스트로 작성, 실제 H2 DB + 전체 스프링 컨텍스트로 검증
+3. **API/통합테스트** — TC-SCENARIO-001(예시 시나리오 재현)을 최종 인수 테스트로 작성, 실제 H2 DB + 전체 스프링 컨텍스트로 검증
 
 > - **계층**: `Domain`(애그리게잇 단위테스트) / `App`(애플리케이션 서비스, repository는 fake/in-memory) / `API`(SpringBootTest + H2, 실제 엔드포인트)
 > - 정책 기본값(테스트 기준값): 1회 최대 적립 100,000P, 최대 보유한도 1,000,000P, 만료일 1일~1825일(5년) 미만, 기본 365일
@@ -110,9 +110,11 @@ Test
 kr.co.freepoint
  ├─ application
  │   ├─ CancelEarnServiceTest   
- │   ├─ EarnPointServiceTest            
- │   ├─ FakePointAccountRepository      
- │   └─ FakePointPolicyRepository 
+ │   ├─ EarnPointServiceTest
+ │   ├─ FakePointAccountRepository 
+ │   ├─ FakePointPolicyRepository      
+ │   ├─ FakePointUseRepository      
+ │   └─ UsePointServiceTest 
  ├─ domain    
  │   ├─ account
  │   │    ├─ PointEarnTest
@@ -209,4 +211,6 @@ kr.co.freepoint
 | TC | 시나리오 | 계층 | Given | When | Then |
 |---|---|---|---|---|---|
 | TC-CONCURRENCY-001 | 동일 계정에 대해 동시에 두 건의 사용 요청이 들어와 합계가 잔액을 초과하는 경우, 하나만 성공하고 다른 하나는 실패한다 | API | 계정 잔액 1000 | 800원 사용 요청 2건을 동시에 전송 | 하나만 성공(200), 다른 하나는 잔액부족으로 실패(4xx), 최종 잔액=200 |
+| TC-CONCURRENCY-002 | 동일 사용 건(PointUse)에 대해 부분취소 요청 두 건이 동시에 들어와 합계가 취소 가능 금액(사용금액-기취소금액)을 초과하는 경우, 하나만 성공하고 다른 하나는 실패하며 사용금액을 초과해서 복원되지 않는다 | API | 2000원 적립 후 1200원 사용(사용 건 C, 잔액 800) | C에 대해 700원 부분취소 요청 2건을 동시에 전송 | 하나만 성공(200), 다른 하나는 취소한도초과로 실패(4xx), 최종 잔액=1500(=2000-1200+700). 두 건 모두 성공하면 잔액이 2200이 되어 원 적립액(2000)을 초과하므로 이를 방지 |
+
 
