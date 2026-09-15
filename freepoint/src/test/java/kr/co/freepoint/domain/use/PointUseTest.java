@@ -25,6 +25,8 @@ class PointUseTest {
     /**
      * TC-USE-001
      * 주문번호와 함께 사용하면 사용 이력에 주문번호가 기록된다
+     * 실행 : account.use(new OrderNo("A1234"), PointAmount.of(500), NOW) 직접 호출
+     * 검증대상 : 반환된 PointUse 엔티티의 pointKey/orderNo/amount
      * Given : 계정 잔액 1000
      * When : orderNo="A1234", amount=500 사용
      * Then : PointUse 생성, orderNo="A1234" 기록, pointKey 발급

@@ -27,6 +27,11 @@ class JpaPointUseRepository implements PointUseRepository {
     }
 
     @Override
+    public Optional<PointUse> findByPointKeyForUpdate(String pointKey) {
+        return springDataRepository.findByPointKeyForUpdate(pointKey);
+    }
+
+    @Override
     public List<PointUse> findAllByAllocationEarnPointKey(String earnPointKey) {
         return springDataRepository.findAllByAllocations_EarnPointKey(earnPointKey);
     }

@@ -9,5 +9,7 @@ public interface PointUseRepository {
 
     Optional<PointUse> findByPointKey(String pointKey);
 
+    Optional<PointUse> findByPointKeyForUpdate(String pointKey);
+
     List<PointUse> findAllByAllocationEarnPointKey(String earnPointKey);
 }

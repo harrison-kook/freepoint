@@ -34,7 +34,7 @@ public class CancelPointUseService {
 
     @Transactional
     public PointUseCancelResult cancel(String usePointKeyValue, long amount) {
-        PointUse use = useRepository.findByPointKey(usePointKeyValue)
+        PointUse use = useRepository.findByPointKeyForUpdate(usePointKeyValue)
                 .orElseThrow(() -> new PointException("USE_NOT_FOUND", HttpStatus.NOT_FOUND,
                         "사용 내역을 찾을 수 없습니다: " + usePointKeyValue));
 
