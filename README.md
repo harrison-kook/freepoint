@@ -54,6 +54,58 @@ H2 콘솔은 `http://localhost:8080/h2-console` 에서 확인할 수 있습니�
 
 에러 응답은 공통 형식(`{"errorCode": "...", "message": "..."}`)으로 내려갑니다(`GlobalExceptionHandler`).
 
+```
+1. user-1 적립 1000 (NORMAL, 기본 만료 365일)                                                                                                                                                                               
+curl -X POST http://localhost:8080/api/points/earn \                                                                                                                                                                          
+  -H "Content-Type: application/json" \                                                                                                                                                                                       
+  -d '{"userId":"user-1","amount":1000,"earnType":"NORMAL"}'    	
+
+Invoke-RestMethod -Uri http://localhost:8080/api/points/earn -Method Post -ContentType "application/json" -Body '{"userId":"user-1","amount":1000,"earnType":"NORMAL"}' 	                                                    
+
+2. user-1 적립 취소 1000 
+curl -X POST http://localhost:8080/api/points/earns/b895e5fe-6e80-448e-85fe-e16b34948d29/cancel \                                                                                                                             
+  -H "Content-Type: application/json" \                                                                                                                                                                                       
+
+Invoke-RestMethod -Uri http://localhost:8080/api/points/earns/b895e5fe-6e80-448e-85fe-e16b34948d29/cancel -Method Post -ContentType "application/json" 	
+																																									   
+3. user-1 적립 상세조회                                                                                                                                                            
+curl -X GET http://localhost:8080/api/points/earns/b895e5fe-6e80-448e-85fe-e16b34948d29 \                                                                                                                                     
+  -H "Content-Type: application/json" \                                                                                                                                                                                       
+
+Invoke-RestMethod -Uri http://localhost:8080/api/points/earns/b895e5fe-6e80-448e-85fe-e16b34948d29 -Method Get -ContentType "application/json" 
+                                                                                                                                                                       
+4. user-1 사용 500 (A1234)                                                                                                                                                              
+curl -X POST http://localhost:8080/api/points/use \                                                                                                                                                                           
+  -H "Content-Type: application/json" \                                                                                                                                                                                       
+  -d '{"userId":"user-1","orderNo":"A123","amount":500}'                                                                                                                                                                     
+
+Invoke-RestMethod -Uri http://localhost:8080/api/points/use -Method Post -ContentType "application/json" -Body '{"userId":"user-1","orderNo":"A123","amount":500}'																																										   
+5. A1234 사용취소 500                                                                                                                                                                
+curl -X POST http://localhost:8080/api/points/uses/f14eb73c-7674-4e88-b630-1fa82e74623d/cancel \                                                                                                                              
+  -H "Content-Type: application/json" \                                                                                                                                                                                       
+  -d '{"amount":2000}'    	
+
+Invoke-RestMethod -Uri http://localhost:8080/api/points/uses/f14eb73c-7674-4e88-b630-1fa82e74623d/cancel -Method Post -ContentType "application/json" -Body '{"amount":500}'
+                                                                                                                                                                                                                              
+6. user-1 계정 총 잔액 조회                                                                                                                                                                          
+curl -X GET /api/points/accounts/user-1/balance \                                                                                                                                                                             
+  -H "Content-Type: application/json" \                                                                                                                                                                                       
+
+Invoke-RestMethod -Uri http://localhost:8080/api/points/accounts/user-1/balance -Method Get -ContentType "application/json" 
+	                                                                                                                                                                                                                         
+7. 정책 조회                                                                                                                                                                 
+curl -X GET http://localhost:8080/api/admin/point-policy \                                                                                                                                 
+  -H "Content-Type: application/json" \                                                                                                                                                                                       
+
+Invoke-RestMethod -Uri http://localhost:8080/api/admin/point-policy -Method Get -ContentType "application/json"
+
+8. 정책 변경                                                                                                                                                                 
+curl -X PUT http://localhost:8080/api/admin/point-policy \                                                                                                                                 
+  -H "Content-Type: application/json" \                                                                                                                                                                                       
+
+Invoke-RestMethod -Uri http://localhost:8080/api/admin/point-policy -Method Put -ContentType "application/json" -Body '{"maxEarnAmount":100000,"maxBalanceAmount":1000000,"minExpireDays":2,"maxExpireDays":1825,"defaultExpireDays":365}'  
+```
+
 ## 설계 개요
 
 - **개발 방식**: TDD + DDD방식. 구현 전에 테스트 시나리오/케이스를 먼저 작성했고, 7단계로 나누어 단계별로 진행했습니다.
